@@ -67,23 +67,23 @@ $i=0;
 if($_GET['page']=='' ){ $p=0; } else { $p = ($_GET['page']) * 500; }
 
 if($_GET['view']=='best'){
-$result = mysql_query("SELECT * FROM media WHERE rate >= $rate AND time > $start AND time < $stop AND tag LIKE '%best%' ORDER BY $orderby LIMIT $p, 500");
+$result = mysqli_query($link, "SELECT* FROM media WHERE rate >= $rate AND time > $start AND time < $stop AND tag LIKE '%best%' ORDER BY $orderby LIMIT $p, 500");
 
 //echo "SELECT * FROM media WHERE rate >= ". $rate ." AND time >". $start ." AND time < " . $stop ." AND rate = '5' ORDER BY time $orderby LIMIT ". $p . ", 500";
 
 }elseif($_GET['view']=='pano'){
-$result = mysql_query("SELECT * FROM media WHERE rate >= $rate AND time > $start AND time < $stop AND tag LIKE '%pano%' ORDER BY $orderby LIMIT $p, 500");
+$result = mysqli_query($link, "SELECT* FROM media WHERE rate >= $rate AND time > $start AND time < $stop AND tag LIKE '%pano%' ORDER BY $orderby LIMIT $p, 500");
 }elseif($_GET['view']=='public'){
-$result = mysql_query("SELECT * FROM media WHERE rate >= $rate AND time > $start AND time < $stop AND tag LIKE '%public%' ORDER BY $orderby LIMIT $p, 500");
+$result = mysqli_query($link, "SELECT* FROM media WHERE rate >= $rate AND time > $start AND time < $stop AND tag LIKE '%public%' ORDER BY $orderby LIMIT $p, 500");
 }elseif($_GET['view']=='video'){
-$result = mysql_query("SELECT * FROM media WHERE rate >= $rate AND time > $start AND time < $stop AND type = 'mp4' ORDER BY $orderby LIMIT $p, 500");
+$result = mysqli_query($link, "SELECT* FROM media WHERE rate >= $rate AND time > $start AND time < $stop AND type = 'mp4' ORDER BY $orderby LIMIT $p, 500");
 }elseif($_GET['view']=='planet'){
-$result = mysql_query("SELECT * FROM media WHERE rate >= $rate AND file LIKE '%planet%' ORDER BY $orderby LIMIT $p, 500");
+$result = mysqli_query($link, "SELECT* FROM media WHERE rate >= $rate AND file LIKE '%planet%' ORDER BY $orderby LIMIT $p, 500");
 }else{
-$result = mysql_query("SELECT * FROM media WHERE rate >= $rate AND time > $start AND time < $stop ORDER BY $orderby LIMIT $p, 500");
+$result = mysqli_query($link, "SELECT * FROM media WHERE rate >= $rate AND time > $start AND time < $stop ORDER BY $orderby LIMIT $p, 500");
 }
 
-$rowCount = mysql_num_rows($result);
+$rowCount = mysqli_num_rows($result);
 
 $view = $_GET['view'];
 $page = $_GET['page'];

@@ -1,5 +1,5 @@
-<script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyC71PIQ_QM6fvAGhDzhnBCBA_hrogBdjhI&sensor=false">
-</script>
+
+<!-- Google Maps API was here  -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">

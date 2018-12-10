@@ -1,106 +1,120 @@
 
-<?
+<?php
+//THIS IS ABOUT TO TAKE A LOT OF MEMORY
 ini_set("memory_limit","10000M");
 ini_set('max_execution_time', 3000); //300 seconds = 5 minutes
 
+//WE WANT TO SEE ALL THE ERRORS
 ini_set('display_startup_errors', 1);
 ini_set('display_errors', 1);
 error_reporting(-1);
 
-$skip=0;
-
-if(isset($_GET['rate'])){
-$rate=$_GET['rate'];
-echo 'Using blanket rating '. $rate . '<br>';
-}else{
-echo 'No Blanket rating in use.<BR>';
-}
-
-
-if (isset($_GET['tag'])){
- $pre_tags .=  $_GET['tag'] +',' ; 
-echo 'The tag "' . $_GET['tag'] . '" has been manually added for each file.<BR> ';
-}else{
-echo 'There was no manual tag added to this run.<BR>';
-}
-
-
-require "../../mysql_creds.php";
-
-$inserted ='0';
-
-	function getGps($exifCoord, $hemi) {
-
-		$degrees = count($exifCoord) > 0 ? gps2Num($exifCoord[0]) : 0;
-		$minutes = count($exifCoord) > 1 ? gps2Num($exifCoord[1]) : 0;
-		$seconds = count($exifCoord) > 2 ? gps2Num($exifCoord[2]) : 0;
-		$flip = ($hemi == 'W' or $hemi == 'S') ? -1 : 1;
-		return $flip * ($degrees + $minutes / 60 + $seconds / 3600);
-	}
-
-
-	function gps2Num($coordPart) {
-
-		$parts = explode('/', $coordPart);
-		if (count($parts) <= 0)
-			return 0;
-		if (count($parts) == 1)
-			return $parts[0];
-		return floatval($parts[0]) / floatval($parts[1]);
-	}
-
-
-
-
+//SUPERDUPER LAME SECURITY EFFORT
 if($_GET['pass'] != 'password') die('access denied');
 
-// error_reporting(E_ALL);
+//GET MYSQL CREDS
+require "../../mysql_creds.php";
 
-if(!is_dir('thumbs')) mkdir('thumbs') or die('can\' create thumbs directory');
+//ESTABLISH BOOLEAN FOR SKIPPING RANDOM FILE TYPES
+$skip=0;
+
+
 ?>
-
 <HTML>
 <body>
-
 <?
 
 
-//BUILD A LIST
+//CHECK FOR BATCH PROCESS TAGS OR RATINGS
+if(isset($_GET['rate'])){
+  $rate=$_GET['rate'];
+  echo 'Using blanket rating '. $rate . '<br>';
+}else{
+  echo 'No Blanket rating in use. &rate=ZEROTOFIVE<BR>';
+  $rate='';
+}
+if (isset($_GET['tag'])){
+  $pre_tags .=  $_GET['tag'] +',' ;
+  echo 'The tag "' . $_GET['tag'] . '" has been manually added for each file.<BR> ';
+}else{
+  echo 'There was no manual tag added &tag=YOURTAGHERE.<BR>';
+  $pre_tags='';
+}
 
-$file_list = array();
+?>
+<HR>
+FINISHED LOOKING AT GET VARIABLES, STARTING BATCH PROCESS
+<HR>
+<?
 
-function listFiles( $from = '../Photos')
-{
-global $link;
 
-    if(! is_dir($from))
-        return false;
 
-    $files = array();
-    $dirs = array( $from);
-    while( NULL !== ($dir = array_pop( $dirs)))
+//ESTABSLISH COUNT OF FILES INSERTED INTO DB
+$inserted ='0';
+
+
+//GET GPS FROM EXIF DATA
+function getGps($exifCoord, $hemi) {
+	$degrees = count($exifCoord) > 0 ? gps2Num($exifCoord[0]) : 0;
+	$minutes = count($exifCoord) > 1 ? gps2Num($exifCoord[1]) : 0;
+	$seconds = count($exifCoord) > 2 ? gps2Num($exifCoord[2]) : 0;
+	$flip = ($hemi == 'W' or $hemi == 'S') ? -1 : 1;
+	return $flip * ($degrees + $minutes / 60 + $seconds / 3600);
+}
+
+//CONVERT GPS INTO NUMERIC DATA
+function gps2Num($coordPart) {
+	$parts = explode('/', $coordPart);
+	if (count($parts) <= 0)
+		return 0;
+	if (count($parts) == 1)
+		return $parts[0];
+	return floatval($parts[0]) / floatval($parts[1]);
+}
+
+//CREATE A THUMBNAIL DIRECTOY IN CASE IT GETS MOVED
+if(!is_dir('thumbs')) mkdir('thumbs') or die('can\' create thumbs directory');
+
+
+//BUILD AN ARRAY OF ALL THE FILES IN "waiting_to_be_batch_processed/" THAT ARE NOT DUPLICATES
+function listFiles( $from = 'waiting_to_be_batch_processed'){
+
+  //Connect to DB
+  global $link;
+
+  //Crawl the directoy and sub directories
+  if(! is_dir($from))
+      return false;
+  $files = array();
+  $dirs = array( $from);
+  while( NULL !== ($dir = array_pop( $dirs)))
+  {
+    if( $dh = opendir($dir))
     {
-        if( $dh = opendir($dir))
+        while( false !== ($file = readdir($dh)))
         {
-            while( false !== ($file = readdir($dh)))
-            {
-                if( $file == '.' || $file == '..')
-                    continue;
-                $path = $dir . '/' . $file;
-                if( is_dir($path))
-                    $dirs[] = $path;
-                else
+            if( $file == '.' || $file == '..')
+                continue;
+            $path = $dir . '/' . $file;
+            if( is_dir($path))
+                $dirs[] = $path;
+            else;
+            //Check each file to make sure it's not a DUP
+  					$dupesql = "SELECT * FROM media where (file = '$path')";
+  					$duperaw = mysqli_query($link, $dupesql);
+  					$row_cnt = $duperaw->num_rows;
 
-
-
-
-					$dupesql = "SELECT * FROM media where (file = '$path')";
-					$duperaw = mysqli_query($link, $dupesql);
-					$row_cnt = $duperaw->num_rows;
-					
-					// But we've used this action before alert duplicate:
+					//If it is a dup yell about it and ignore it
 					if ($row_cnt > 0)
 					{ echo "The file at ". $path . " is already in the DB and will be ignored.<BR>";
+
+////////////////////////////////
+////////
+//Temporarilly Procecess dups with this line
+$file_list[] = $path;
+////////
+///////////////////////////////
+
 						}else{
 					$file_list[] = $path;
 					}
@@ -108,82 +122,62 @@ global $link;
             closedir($dh);
         }
     }
+    //Return an array of all the files to be examined for processing
     return $file_list;
 }
 
 $file_list = listFiles();
-/*
-if ($handle = opendir('../Photos')) {
-
-   while (false !== ($file = readdir($handle)))
-   {
-
-//CHECK DUPS
-			$dupesql = "SELECT * FROM media where (file = '$file')";
-			$duperaw = mysql_query($dupesql);
-			// But we've used this action before alert duplicate:
-			if (mysql_num_rows($duperaw) > 0)
-			{
-//STOP DUPS
-echo memory_get_usage() ;
-echo '*' . $file . '<BR>'  ;
-			}else{
-$file_list[] = $file;
-echo $file . '<BR> ' ;
-			}
-	}
-closedir($handle);
-}
-*/
-
-
 $count = 0;
 $total = count($file_list);
 $file_list_r = array_reverse($file_list);
+?>
+<HR>
+  Finished examining files in "waiting_to_be_batch_processed/" for dups. Beginning Processing
+<HR>
+<?
 
+foreach($file_list_r as $file){
 
-	foreach($file_list_r as $file)
-		{
-$pre_tags='DSLR_ARCHIVE,';
-
-
-//echo '<BR><BR><hr>' . $file . ' ';
-
+      //Break file structure apart
 			$filename = explode('.',$file);
 			$fileext = array_pop($filename);
+      echo'<BR><BR><B>STARTING TO PROCESS:</B> ' . $file . ' <BR>';
 
-			if (strpos(strtolower($filename['0']),'select') !== false) {
-			$pre_tags .=  'select,';
-			$rate = '4';
-			echo '<BR>select!<BR>';
+      //If in a "Select" Directory give it a 4 rating
+			if (strpos(strtolower($file['0']),'select') !== false) {
+  			$pre_tags .=  'select,';
+  			$rate = '4';
+  			echo '<BR>select!<BR>';
 			}
 
+
+//////////////////////////
+//      HANDLE ALL JPGS
+/////////////////////////
 			if (strtolower($fileext) == 'jpg'  )
 			{
 
-//JPEG	SUBTYPES
-
+      //JPEG SUBTYPES
 			if (strpos($file,'PANO') !== false)
 			{
-//PANO
-echo 'PANO<BR>';
+      //PANO
+      echo 'PANO<BR>';
 					$tags = ', pano, ' . $pre_tags;
+
 			if (strpos($file,'TINYPLANET') !== false)
 			{
-//TINY PLANET
-echo 'TINYPLANET<BR>';
-					$tags = ', tinyplanet,' . $pre_tags;
-					    }
+        //TINY PLANET
+        echo 'TINYPLANET<BR>';
+				$tags = ', tinyplanet,' . $pre_tags;
+			}
 
-				    }else{
-						$tags ='' . $pre_tags;
-					}
+	    }else{
+			$tags ='' . $pre_tags;
+		  }
 
-
-
-
-			if(filesize($file)>7000000){
+			if(filesize($file)>700000000){
 //TOO BIG FOR THUMB
+// PREVIOUS VERSION = if(filesize($file)>7000000){
 				$type = 'large';
 echo 'TOO LARGE FOR THUMB<BR>';
 					}else{
@@ -193,7 +187,6 @@ echo 'TOO LARGE FOR THUMB<BR>';
 //MAKE A THUMBNAIL
 
 					   $filename_safe = str_replace("/","|", $file);
-
 					   $save_path = getcwd().'/thumbs/';
 					   $im = imagecreatefromjpeg($file);
 					   $new_x = 495;
@@ -212,6 +205,11 @@ echo 'TOO LARGE FOR THUMB<BR>';
 
 			}
 
+
+
+//////////////////////////
+//      HANDLE ALL CR2s
+/////////////////////////
 			elseif(strtolower($fileext) == 'cr2'){
 				//CR2 RAW FILE TYPE
 									   $type = 'cr2';
@@ -235,6 +233,12 @@ echo 'TOO LARGE FOR THUMB<BR>';
 									   $count++;
 
 			}
+
+
+
+//////////////////////////
+//      HANDLE ALL NEFs
+/////////////////////////
 			elseif(strtolower($fileext) == 'nef'){
 				//NEF RAW FILE TYPE
 									   $type = 'nef';
@@ -258,15 +262,30 @@ echo 'TOO LARGE FOR THUMB<BR>';
 									   $count++;
 
 			}
+
+
+
+//////////////////////////
+//      HANDLE ALL MP4S
+/////////////////////////
 			elseif(strtolower($fileext) == 'mp4')
 			{
-
 					$tags='' . $pre_tags;
 					echo 'MP4<BR>';
 					$type = 'mp4';
-					//OTHER FILE TYPES
-					//WRITE TO DB
-			}elseif(strtolower($fileext) == '3gp')
+          $filename_safe = str_replace("/","|", $file);
+          //exec("ffmpeg -i /Users/bconnors/Desktop/Codes/bcatdc.us.to/photos/waiting_to_be_batch_processed/mp4s/input.mp4 -vcodec mjpeg -vframes 1 -an -f rawvideo -ss `ffmpeg -i /Users/bconnors/Desktop/Codes/bcatdc.us.to/photos/waiting_to_be_batch_processed/mp4s/input.mp4 2>&1 | grep Duration | awk '{print $2}' | tr -d , | awk -F ':' '{print ($3+$2*60+$1*3600)/2}'` /Users/bconnors/Desktop/Codes/bcatdc.us.to/photos/waiting_to_be_batch_processed/mp4s/output.jpg");
+
+
+
+
+			}
+
+
+//////////////////////////
+//      HANDLE ALL 3GPS
+/////////////////////////
+      elseif(strtolower($fileext) == '3gp')
 			{
 
 					$tags='' . $pre_tags;
@@ -274,7 +293,12 @@ echo 'TOO LARGE FOR THUMB<BR>';
 					$type = '3gp';
 					//OTHER FILE TYPES
 					//WRITE TO DB
-			}else{
+			}
+
+//////////////////////////
+//      HANDLE ALL JUST JUNK
+/////////////////////////
+          else{
 					echo 'OTHER ' . $fileext . '<br>';
 					$skip=1;
 			}

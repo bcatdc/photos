@@ -14,7 +14,7 @@ function smartToggle(el,update){
 		if( el.hasClass("off")){
 			el.removeClass('off');
 			el.addClass('on');
-			
+
 				if(update == 'update'){
 				var action = 'removetag';
     			console.log( el.data('id') + action +  el.data('tag') );
@@ -40,7 +40,7 @@ $(document).ready(function(){
 
     $("span").click(function(){
  		console.log( $(this).data('id') + ' - ' + $(this).data('tag')  );
-		smartToggle($(this),'update');    
+		smartToggle($(this),'update');
 
 });
 
@@ -48,7 +48,7 @@ $(document).ready(function(){
 
 function updatedb(id,action,tag){
 console.log( action +'-'+ tag +'-'+ id);
-$.ajax({ 
+$.ajax({
         method: "get",
         //url: 'jsdemo.php',
         url: 'db_update.php',
@@ -58,7 +58,7 @@ $.ajax({
             console.log(result);
             //Check the dev console in your browser
             //Do something with returned data
-        } 
+        }
 });
 }
 </script>
@@ -111,7 +111,7 @@ color:#FF926B;
           border-top-color: #222;
        }
 
-.fourthree-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; } 
+.fourthree-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; }
 </style>
 
 <script>
@@ -140,8 +140,8 @@ echo 'logged in';
 
 include('querybar.php');
 
-while($row = mysql_fetch_array( $result )) 
-{ 
+while($row = mysqli_fetch_array( $result )) 
+{
 error_reporting(0);
 $text = date( "F j, Y, g:i a" ,$row['time']);
 error_reporting(1);
@@ -189,9 +189,9 @@ require 'icon_bar.php';
 <BR><BR>
 <BR><a href="/full_res/<? echo $row['file']; ?>">Open Video</a>
 	</div>
-</a> 
+</a>
 
-<? 
+<?
 }else{
 ?>
 <div>
@@ -212,7 +212,7 @@ $thumb = $row['file'];
 <a target="_blank" href="single.php?i=<? echo $row['ID'] ; ?>">
 	<img style="max-height:300px;" src='thumbs/<? echo $thumb ; ?>'></a>
 	</div>
-</a> 
+</a>
 
 
 <?
@@ -221,10 +221,10 @@ $thumb = $row['file'];
 
 
 
-<? 
-?> 
+<?
+?>
 </div>
-<? 
+<?
 }
 ?>
 </div>
