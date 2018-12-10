@@ -11,11 +11,11 @@ $XML = 'hmmm';
 
 
 
-	$datetime = gmdate('r', $time); 
-	$theTimeDate = $datetime; //variable of date and time from script / database 
+	$datetime = gmdate('r', $time);
+	$theTimeDate = $datetime; //variable of date and time from script / database
 	$pubdate       = new DateTime($theTimeDate );
 	$pubdate       = $pubdate->format(DateTime::ISO8601); //format date into the ISO8601 standard which WordPress likes...
-	$pubdate       = str_replace("-", "", $pubdate); // remove the dashes 
+	$pubdate       = str_replace("-", "", $pubdate); // remove the dashes
 	$removeTimeOffset = explode("+", $pubdate); // remove the time offset (split at the '+' in the date / time)
 	$pubdate       = $removeTimeOffset[0] . "Z"; // Append a Z to the string - we've now formatted the date and time.
 
@@ -37,8 +37,7 @@ curl_close($ch);
 
 
 // Make a MySQL Connection
-mysql_connect("localhost", "root", "root") or die(mysql_error());
-mysql_select_db("awesomedex") or die(mysql_error());
+require "../../mysql_creds.php";
 
 
 // $ids = $_GET['ids'];
@@ -55,22 +54,22 @@ if ($admin == 1){
 			}
 
 			if( $action == 'addtag'){
-				$sql = "UPDATE media SET tag = CONCAT(IFNULL(tag,''),'" . $tag . ",') WHERE ID = ". $id;			
+				$sql = "UPDATE media SET tag = CONCAT(IFNULL(tag,''),'" . $tag . ",') WHERE ID = ". $id;
 				echo '{"action":"tag added"}';
 			}
 
-			if( $action == 'removetag'){		
-				$sql = "UPDATE media SET tag = REPLACE( tag ,'" . $tag . "', '') WHERE ID = ". $id;			
+			if( $action == 'removetag'){
+				$sql = "UPDATE media SET tag = REPLACE( tag ,'" . $tag . "', '') WHERE ID = ". $id;
 				echo '{"action":"tag dropped"}';
 			}
-			mysql_query($sql) or die(mysql_error());	
-//echo $sql;				
+			mysql_query($sql) or die(mysql_error());
+//echo $sql;
 }else{ return 'Not Admin'; }
-			
-				
+
+
 		//echo 'Updated<BR>';
 
-		
+
 //NEW WORDPRESS ADDITION
 if($_GET['public']>0){
 
@@ -97,5 +96,3 @@ wpGETXMLRPC($title,$body,$file,$rpcurl,$username,$password,$categories,$time);
 
 
 ?>
-
-

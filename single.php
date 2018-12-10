@@ -24,7 +24,7 @@ $geo_show = 'block';
 $geo_show = 'none';
 }
 
-//Post to WP 
+//Post to WP
 function wpPostXMLRPC($title,$body,$file,$rpcurl,$username,$password,$categories,$time){
 
 $categories = array('Photos');
@@ -33,11 +33,11 @@ $XML = 'hmmm';
 
 
 
-	$datetime = gmdate('r', $time); 
-	$theTimeDate = $datetime; //variable of date and time from script / database 
+	$datetime = gmdate('r', $time);
+	$theTimeDate = $datetime; //variable of date and time from script / database
 	$pubdate       = new DateTime($theTimeDate );
 	$pubdate       = $pubdate->format(DateTime::ISO8601); //format date into the ISO8601 standard which WordPress likes...
-	$pubdate       = str_replace("-", "", $pubdate); // remove the dashes 
+	$pubdate       = str_replace("-", "", $pubdate); // remove the dashes
 	$removeTimeOffset = explode("+", $pubdate); // remove the time offset (split at the '+' in the date / time)
 	$pubdate       = $removeTimeOffset[0] . "Z"; // Append a Z to the string - we've now formatted the date and time.
 
@@ -74,7 +74,7 @@ function showOverlay(){
 $('#overlay').addClass('showverlay');
 $('#overlay').removeClass('hideverlay');
 fadedout = 0;
-  
+
 setTimeout(function(){
   $('#overlay').addClass('hideverlay');
   $('#overlay').removeClass('showverlay');
@@ -87,7 +87,7 @@ function smartToggle(el,update){
 		if( el.hasClass("off")){
 			el.removeClass('off');
 			el.addClass('on');
-			
+
 				if(update == 'update'){
 				var action = 'removetag';
     			console.log( el.data('id') + action +  el.data('tag') );
@@ -113,7 +113,7 @@ $(document).ready(function(){
 
     $("span").click(function(){
  		console.log( $(this).data('id') + ' - ' + $(this).data('tag')  );
-		smartToggle($(this),'update');    
+		smartToggle($(this),'update');
 
 });
 
@@ -121,7 +121,7 @@ $(document).ready(function(){
 
 function updatedb(id,action,tag){
 console.log( action +'-'+ tag +'-'+ id);
-$.ajax({ 
+$.ajax({
         method: "get",
         //url: 'jsdemo.php',
         url: 'db_update.php',
@@ -131,7 +131,7 @@ $.ajax({
             console.log(result);
             //Check the dev console in your browser
             //Do something with returned data
-        } 
+        }
 });
 }
 </script>
@@ -193,7 +193,7 @@ opacity:0;
           border-top-color: #222;
        }
 
-.fourthree-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; } 
+.fourthree-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; }
 </style>
 
 <script>
@@ -206,14 +206,13 @@ document.getElementById(id).innerHTML = "<div class='grid' style='background-siz
 <body style="padding:0px; margin:0px; background-color:#000; color:#eee;" onload="" >
 
 
-    
+
 <?
 // Make a MySQL Connection
-mysql_connect("localhost", "root", "root") or die(mysql_error());
-mysql_select_db("awesomedex") or die(mysql_error());
+require "../../mysql_creds.php";
 ?>
 
-<? 
+<?
 
 if(strlen($_POST['i'])>0){
 
@@ -248,14 +247,14 @@ if($_POST['public']>0){ $tags .= 'public,';}
 if ($admin == 1){
 
 		if(strlen($_POST['latlon'])>2){
-		
+
 			if(strlen($rate)>0){
 				mysql_query("UPDATE media SET lat='$lat', lon='$lon', manual_gps ='$manual_gps' , rate='$rate', blurb='$blurb', tag='$tags' WHERE ID='$id' ") or die(mysql_error());
 			}else{
-				mysql_query("UPDATE media SET lat='$lat', lon='$lon', manual_gps ='$manual_gps' , blurb='$blurb', tag='$tags' WHERE ID='$id' ") or die(mysql_error());	
+				mysql_query("UPDATE media SET lat='$lat', lon='$lon', manual_gps ='$manual_gps' , blurb='$blurb', tag='$tags' WHERE ID='$id' ") or die(mysql_error());
 			}
-			
-			
+
+
 		}else{
 			if(strlen($rate)>0){
 				mysql_query("UPDATE media SET rate='$rate', blurb='$blurb', tag='$tags' WHERE ID='$id' ") or die(mysql_error());
@@ -263,9 +262,9 @@ if ($admin == 1){
 				mysql_query("UPDATE media SET blurb='$blurb', tag='$tags' WHERE ID='$id' ") or die(mysql_error());
 			}
 		}
-		
+
 		echo 'Updated<BR>';
-		
+
 //NEW WORDPRESS ADDITION
 if($_POST['public']>0){
 
@@ -329,7 +328,7 @@ $result = mysql_query("SELECT * FROM media ORDER BY RAND() LIMIT 1");
 ?>
 <?
 
-while($row = mysql_fetch_array( $result )) { 
+while($row = mysql_fetch_array( $result )) {
 ?>
 
 <div id='loading' style="color:#41c8f4; font-weight:400; margin:5px; padding:10px; display:inline-block; background-color:rgba(0,0,0,0.5); position:fixed; z-index:200; "><img src="http://www.ben-connors.com/img/spinner2.gif" style="height:20px;">HD LOADING</div>
@@ -347,8 +346,8 @@ while($row = mysql_fetch_array( $result )) {
 
 
 <div style="position:absolute; bottom:0px; background-color:rgba(0,0,0,0.5); padding:20px; font-size:20px; width:100%; margin:0px; color:#aaa; ">
-<a href="index.php"><i class="fa fa-th" aria-hidden="true"></i></a> &nbsp; 
-<a href="map3.php"><i class="fa fa-map-marker" aria-hidden="true"></i></a>&nbsp; 
+<a href="index.php"><i class="fa fa-th" aria-hidden="true"></i></a> &nbsp;
+<a href="map3.php"><i class="fa fa-map-marker" aria-hidden="true"></i></a>&nbsp;
 <a href="single.php"><i class="fa fa-random" aria-hidden="true"></i></a> &nbsp; &nbsp;
 
 <? if ($_SESSION['auth'] == '+yRjDNoj8GDPy+wcqDUB+MT56lQmKCxMT3vnJZs1kdU='){
@@ -383,13 +382,13 @@ if (strpos($row['tag'],'DSLR_ARCHIVE') !== false) {
 $file = $row['file'];
 $thumb = 'thumbs/'. str_replace("/","|", $row['file']);
 }else{
-$file = "http://ben-connors.com/cellphotos/full_res/" . $row['file']; 
+$file = "http://ben-connors.com/cellphotos/full_res/" . $row['file'];
 }
 
  ?>
- 
- 
- 
+
+
+
  <a href="<? echo $file; ?>"><i class="fa fa-download" aria-hidden="true"></i></a>
 </div>
 </div>
@@ -413,19 +412,19 @@ if ($height / $width < 1) {
 $orient = 'EXTREME HORIZONTAL';
 echo "<div style=\"   filter: blur(5px); opacity: 0.75; -webkit-filter: blur(5px); z-index:-1; width:100%; height:100%; margin:0px; padding:0px; color:#fff;  text-shadow: 2px 2px 5px #000000; postion:absolute;     background-size:   cover;    background-position: center;                     /* <------ */
      background-image:url('". $thumb . "');\"></div>";
-     
+
 echo "<div id='photo_res' style=\" position:absolute; z-index:1; width:100%; height:100%; top:0px; padding:0px;     background-size:   contain;         background-repeat: no-repeat;   background-position: center;               /* <------ */
-     background-image:url('". $thumb . "');\"></div>";    
-     
+     background-image:url('". $thumb . "');\"></div>";
+
 } else
 
 {
 $orient =  'VERTICAL';
 echo "<div style=\"   filter: blur(5px); opacity: 0.75; -webkit-filter: blur(5px); z-index:-1; width:100%; height:100%; margin:0px; padding:0px; color:#fff;  text-shadow: 2px 2px 5px #000000; postion:absolute;     background-size:   cover;       background-position: center;                  /* <------ */
      background-image:url('". $thumb . "');\"></div>";
-     
+
 echo "<div id='photo_res' style=\" position:absolute; z-index:1; width:100%; height:100%; top:0px; padding:0px;     background-size:   contain;         background-repeat: no-repeat; background-position: center;                  /* <------ */
-     background-image:url('". $thumb . "');\"></div>";    
+     background-image:url('". $thumb . "');\"></div>";
 }
 
 
@@ -436,7 +435,7 @@ console.log('running');
 var image = document.getElementById('photo_res');
 var downloadingImage = new Image();
 downloadingImage.onload = function(){
-    image.style.backgroundImage = "url('"+ this.src+"')";  
+    image.style.backgroundImage = "url('"+ this.src+"')";
     console.log('downloaded');
     document.getElementById('loading').style.opacity = "0";
 };
@@ -477,17 +476,17 @@ function initialize() {
 
     var map = new google.maps.Map(document.getElementById("map_canvas"),
             myOptions);
-            
+
       var marker = new google.maps.Marker({
       position: latlng,
       map: map
-  });        
+  });
 
 
       google.maps.event.addListener(map, 'click', function(event) {
         placeMarker(event.latLng);
-        document.getElementById('latlon').value = event.latLng; 
-        
+        document.getElementById('latlon').value = event.latLng;
+
     });
 
     function placeMarker(location) {
@@ -505,11 +504,11 @@ function initialize() {
 
 
         google.maps.event.addListener(marker, "click", function (event) {
-               document.getElementById('latlon').value = this.position; 
+               document.getElementById('latlon').value = this.position;
         });
        }
 
-       }             
+       }
 
      </script>
 
@@ -543,8 +542,8 @@ function initialize() {
 
       google.maps.event.addListener(map, 'click', function(event) {
         placeMarker(event.latLng);
-        document.getElementById('latlon').value = event.latLng; 
-        
+        document.getElementById('latlon').value = event.latLng;
+
     });
 
     function placeMarker(location) {
@@ -561,11 +560,11 @@ function initialize() {
         map.setCenter(location);
 
         google.maps.event.addListener(marker, "click", function (event) {
-               document.getElementById('latlon').value = this.position; 
+               document.getElementById('latlon').value = this.position;
         });
        }
 
-       }             
+       }
 
      </script>
 
@@ -576,7 +575,7 @@ function initialize() {
 </div>
 
 
-<? 
+<?
 }
 ?>
 <!-- </td><td>

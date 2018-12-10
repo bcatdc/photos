@@ -6,8 +6,8 @@ ini_set('display_errors', 1);
 error_reporting(-1);
 
 // Make a MySQL Connection
-mysql_connect("localhost", "root", "root") or die(mysql_error());
-mysql_select_db("awesomedex") or die(mysql_error());
+require "../../mysql_creds.php";
+
 ?>
 
 <div id="SearchPane" class="collapse" style="border:1px solid #333; padding:15px; ">
