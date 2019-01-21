@@ -18,7 +18,6 @@
  * 	version can be found at:
  *
  *	http://www.phpclasses.org/browse/package/3370.html
- *
  */
 class GetMostCommonColors
 {

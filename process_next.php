@@ -4,11 +4,23 @@
 /////////////////////////////////////////////////////////////////////
 ///TO DO :
 
-// MAKE SURE SELECTS ARE RATED 4 in the DB
+// Clean up could by adding SWITCH / CASE for file types
 
-// DROP "FILENAME" from DB no longer important
+//See if you can fix thumbnail brightness for .dng raws
 
-//GET EXIF OFF VIDEOS
+//Make sure moving raws without .XMLs isn't creating permanent breaks
+
+//Handle .pngs
+
+// Think through and implement how to migrate META data from current DB for Cell Photos
+
+//Move Colors into function
+
+//Think through and implement HEX colors to HLS or HLV for better Search
+
+//Consider Preview Option sizes
+
+//Deal with "invalid" .JPG files
 
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
