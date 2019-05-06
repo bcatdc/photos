@@ -20,7 +20,18 @@
 
 //Consider Preview Option sizes
 
-//Deal with "invalid" .JPG files
+//Deal with "invalid" .JPG files  - Leave them where they are probably .PSDs
+
+
+//MAKE JPGS FROM RAWS AND PRESENT THEM IN SINGLE.PHP
+
+
+
+// BROKE THINGS WHEN I CHANGED APACHE ROOT TO
+// REPOS IN ORDER TO INCLUDE THUMBNAIL DIRECTORY. GOT ALL THUMBS WORKING
+// ACCEPT IMAGICK JPEGS. SOMETHING WRONG WITH LINE 76 or 319
+
+
 
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
@@ -51,7 +62,6 @@ $file = $_GET['file_name'];
 $size = $_GET['size'];
 $quality = $_GET['quality'];
 $pre_tags = $_GET['pre_tags'];
-$serial = $_GET['serial'];
 if(isset($_GET['rate'])){
 $rate = $_GET['rate'];
 }else{
@@ -62,13 +72,28 @@ $rate = $_GET['rate'];
 $skip = 0;
 
 
+function returnNewSerial($link){
+    //Get current Serial Number from DB for naming
+    $serialsql = "SELECT ID FROM media  ORDER BY ID DESC limit 1";
+    $serialraw = mysqli_query($link, $serialsql );
+    if (mysqli_num_rows($serialraw) > 0) {
+        $row = mysqli_fetch_assoc($serialraw);
+        $serial = $row["ID"] + 1;
+    } else {
+        $serial = 1;
+    }
+    return $serial;
+}
+
+
 //JPEG THUMBNAIL FUNCTION
 function makeAThumbFromJpeg($file,$serial,$size,$quality){
     global $status;
     //$filename_safe = str_replace("/","|", $file);
     $thumbname=$serial."_thumb_".$size.".jpg";
     $status .= "<B>CREATING THUMBNAIL: </B> " . $thumbname."<BR>";
-    $save_path = getcwd().'/thumbs/';
+    $save_path = '/Users/benconnors/Bens Things/Code/Repos/thumbs/';
+    echo getcwd();
     $im = imagecreatefromjpeg($file);
     $new_x = $size;
     $factor = $size / imagesx($im);
@@ -85,14 +110,13 @@ function makeAThumbFromRaw($file,$serial,$size,$quality){
 global $status;
     $ufraw_path = "/usr/local/Cellar/ufraw/0.22_2/bin/ufraw-batch";
     $raw_file_path ="/Users/benconnors/Bens\ Things/Code/Repos/Photos/".str_replace(" ","\ ",$file);
-    $output_filename="thumbs/".$serial."_thumb_".$size.".jpg";
+    $output_filename="../thumbs/".$serial."_thumb_".$size.".jpg";
     $maxsize=$size;
     $quality=$quality;
 
     $command= $ufraw_path . " ".  $raw_file_path ." --out-type=jpeg --compression=". $quality ." --exposure=auto --size=". $maxsize .",". $maxsize ."  --output=" . $output_filename ;
     system($command);
     $status .= "<B>command:</B>" . $command . "<br>";
-
 }
 
 //VIDEO THUMBNAIL FUNCTION
@@ -102,7 +126,7 @@ function makeAThumbFromVideo($file,$serial,$size,$quality){
     $loop_legnth_seconds="2.5";
     $start_at_seconds="2";
     $video_file_path ="/Users/benconnors/Bens\ Things/Code/Repos/Photos/".str_replace(" ","\ ",$file);
-    $output_file_path="/Users/benconnors/Bens\ Things/Code/Repos/Photos/thumbs/".$serial."_thumb_".$size.".gif";
+    $output_file_path="../thumbs/".$serial."_thumb_".$size.".gif";
     $width=$size;
     $fps="12";
 
@@ -110,7 +134,7 @@ function makeAThumbFromVideo($file,$serial,$size,$quality){
     //system($gif_command);
     exec($gif_command);
 
-    $jpg_output_filename="thumbs/".$serial."_thumb_".$size.".jpg";
+    $jpg_output_filename="../thumbs/".$serial."_thumb_".$size.".jpg";
     $jpg_command= $ffmpeg_path . " -i ". $video_file_path ." -vf  'thumbnail,scale=".$width.":-1' -qscale:v 4 -frames:v 1 ".$jpg_output_filename;
     exec($jpg_command);
 
@@ -180,6 +204,29 @@ function getEXIFdata($file){
 }
 
 
+//LOOK FOR TIMESTAMP IN DB. IF DUP PUT ASIDE
+//Proceed as normal for dateless / aka 8-23-83 Photos
+
+function dupCheck(){
+    global $status,$time,$link,$dupOf;
+
+    if ($time != strtotime("1983-8-23")){
+            $result = mysqli_query($link , "SELECT ID FROM media WHERE time = $time");
+            if (mysqli_num_rows($result) > 0) {
+                while($row = mysqli_fetch_assoc($result)) {
+                    $status .= "<BR> <B style='color:#FAA;'>SUSPECTED DUPLICATE OF: </B>". $row["ID"] ."<BR>";
+                    $status .= "<a target='_blank' href='single.php?i=".$row["ID"]."'><img width='50px' src='../thumbs/" . $row["ID"]. "_thumb_495.jpg'></a><BR>";
+                    $dupOf = $row["ID"];
+                }
+            }
+    }else{
+        $dupOf = "";
+    }
+}
+
+
+
+
 //GET LAT LON EXIF, GET TIME FROM EXIF OR FALLBACK OPTIONS
 function getMovieMetadata($file){
 
@@ -206,7 +253,8 @@ function getMovieMetadata($file){
 
 
 
-
+        //GRAB NEXT AVAILABLE SERIAL
+        $serial =returnNewSerial($link);
 
         //CLEAR VARIABLES FOR LOOP REPEATS
         $status='<B>URL: </B>'. "$_SERVER[REQUEST_URI]" .'<BR>';
@@ -233,38 +281,52 @@ function getMovieMetadata($file){
         if (strtolower($type) == 'jpg'  )
         {
             $preview_ext_type =".jpg";
-            makeAThumbFromJpeg($file,$serial,$size,$quality);
             getEXIFdata($file);
+            dupCheck();
+            makeAThumbFromJpeg($file,$serial,$size,$quality);
 
             }elseif(strtolower($type) == 'cr2'){
                 $preview_ext_type =".jpg";
-                makeAThumbFromRaw($file,$serial,$size,$quality);
                 getEXIFdata($file);
+                dupCheck();
+                makeAThumbFromRaw($file,$serial,$size,$quality);
+                //Big Thumbs for RAWs
+                makeAThumbFromRaw($file,$serial,'2880',$quality);
 
             }elseif(strtolower($type) == 'dng'){
+                getEXIFdata($file);
+                dupCheck();
                 $preview_ext_type =".jpg";
                 makeAThumbFromRaw($file,$serial,$size,$quality);
-                getEXIFdata($file);
+                //Big Thumbs for RAWs
+                makeAThumbFromRaw($file,$serial,'2880',$quality);
+
 
 		    }elseif(strtolower($type) == 'nef'){
+                getEXIFdata($file);
+                dupCheck();
                 $preview_ext_type =".jpg";
                 makeAThumbFromRaw($file,$serial,$size,$quality);
-                getEXIFdata($file);
+                //Big Thumbs for RAWs
+                makeAThumbFromRaw($file,$serial,'2880',$quality);
 
 			}elseif(strtolower($type) == 'mp4'){
+                getMovieMetadata($file);
+                dupCheck();
                  $preview_ext_type =".gif";
                 makeAThumbFromVideo($file,$serial,$size,$quality);
-                getMovieMetadata($file);
 
             }elseif(strtolower($type) == 'mov'){
+                getMovieMetadata($file);
+                dupCheck();
                  $preview_ext_type =".gif";
                 makeAThumbFromVideo($file,$serial,$size,$quality);
-                 getMovieMetadata($file);
 
             }elseif(strtolower($type) == '3gp'){
                 $preview_ext_type =".gif";
-                makeAThumbFromVideo($file,$serial,$size,$quality);
                 getMovieMetadata($file);
+                dupCheck();
+                makeAThumbFromVideo($file,$serial,$size,$quality);
 			}else{
                 //////////////////////////
                 //      HANDLE ALL OTHER RANDOM FILES
@@ -290,7 +352,7 @@ function getMovieMetadata($file){
         $reduce_brightness = 1;
         $reduce_gradients = 1;
         $ex=new GetMostCommonColors();
-        $colors=$ex->Get_Color('thumbs/'. $serial. '_thumb_'.$size.'.jpg', $num_results, $reduce_brightness, $reduce_gradients, $delta);
+        $colors=$ex->Get_Color('../thumbs/'. $serial. '_thumb_'.$size.'.jpg', $num_results, $reduce_brightness, $reduce_gradients, $delta);
         $color_array = json_encode($colors);
         $status .= "<B>COLORS :</B>  ";
         foreach ( $colors as $hex => $count )
@@ -300,25 +362,27 @@ function getMovieMetadata($file){
         $status .="<BR>";
 
        // BUILD PREVIEW IMAGE TAG BASED ON TYPE
-        $preview_img =  '<img src="thumbs/'. $serial. '_thumb_'.$size. $preview_ext_type. '" style="float:left; margin-right:12px;">';
+        $preview_img =  '<img src="../thumbs/'. $serial. '_thumb_'.$size. $preview_ext_type. '" style="float:left; margin-right:12px;">';
         $status.= "<B>LAT:</B> ". $lat ."<BR><B> LON: </B>". $lon . "<BR><B>TIME: </B>" . date("Y-m-d h:i:sa", $time). "<BR>"  ;
 
         //PRINT STATUS W PIC
         echo "<div style='border:1px solid #ccc; margin-bottom:20px;'>" . $preview_img . $status . "<div style='clear:both;'></div></div>";
+        //echo '{"serial":"'.$serial.'", "block":"<div style=\'border:1px solid #ccc; margin-bottom:20px;\'>' . $preview_img . $status . '<div style=\'clear:both;\'></div></div>"}';
+
 
 
             //MOVE AND RENAME FILE
-            rename($file, 'image_archive/'. $serial.'.'. $type);
+            rename($file, '../image_archive/'. $serial.'.'. $type);
             $status .= '<B>MOVED TO</B> image_archive/'.$serial.'.'.$type.'<br>';
 
             //INSERT INTO DB
-			mysqli_query($link , "INSERT INTO media (lat, lon, time, type, tag, rate, colors) VALUES(  '$lat', '$lon', '$time', '$type', '$tags' ,'$rate', '$color_array') ") or die(mysql_error());
-            $serial++;
+			mysqli_query($link , "INSERT INTO media (lat, lon, time, type, tag, rate, colors,dup_of) VALUES(  '$lat', '$lon', '$time', '$type', '$tags' ,'$rate', '$color_array','$dupOf') ") or die(mysql_error());
 	 }else{
      //VISIBILY NOTE SKIPPED Files
 
             //PRINT STATUS W PIC
             echo "<div style='border:1px solid #ccc; margin-bottom:20px;'><B>SKIPPED:" . $file. "<div style='clear:both;'></div></div>";
+            //echo '{"serial":"'.$serial.'", "block":"<div style=\'border:1px solid #ccc; margin-bottom:20px;\'><B>SKIPPED:' . $file. '<div style=\'clear:both;\'></div></div>"}';
 
      }
 

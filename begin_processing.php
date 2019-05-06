@@ -19,8 +19,7 @@ require "../../mysql_creds.php";
 global $link;
 
 //CREATE A THUMBNAIL DIRECTOY IN CASE IT GETS MOVED
-if(!is_dir('thumbs')) mkdir('thumbs') or die('can\' create thumbs directory');
-
+if(!is_dir('../thumbs')) mkdir('../thumbs') or die('can\' create thumbs directory');
 ?>
 
 <HTML>
@@ -67,7 +66,7 @@ FINISHED LOOKING AT GET VARIABLES, STARTING BATCH PROCESS
 <?
 
 //BUILD AN ARRAY OF ALL THE FILES IN "waiting_to_be_batch_processed/" THAT ARE NOT DUPLICATES
-function listFiles( $from = 'waiting_to_be_batch_processed'){
+function listFiles( $from = '../waiting_to_be_batch_processed'){
   //Connect to DB
   global $link;
 
@@ -108,7 +107,7 @@ function listFiles( $from = 'waiting_to_be_batch_processed'){
     return $file_list;
 
 }
-
+/*
 //Get current Serial Number from DB for naming
 $serialsql = "SELECT ID FROM media  ORDER BY ID DESC limit 1";
 $serialraw = mysqli_query($link, $serialsql );
@@ -118,7 +117,7 @@ if (mysqli_num_rows($serialraw) > 0) {
 } else {
     $serial = 1;
 }
-
+*/
 //Prepare List and total count of files
 $file_list = listFiles();
 $count = 0;
@@ -146,7 +145,7 @@ console.log(files);
     var size=495;
     var quality=85;
 
-    var serial = <?php echo $serial; ?>;
+
     var preTags = "<?php echo $batch_tags; ?>";
 
     function loadMoreData(x){
@@ -154,7 +153,7 @@ console.log(files);
             console.log(x);
             var filename = files[x];
             console.log(filename);
-            var url = 'process_next.php?file_name=' + filename+'&pass=password&serial='+ serial +'&size='+size+'&quality='+ quality +'&pre_tags='+preTags;
+            var url = 'process_next.php?file_name=' + filename+'&pass=password&size='+size+'&quality='+ quality +'&pre_tags='+preTags;
             console.log(url);
               $.ajax(
                     {
@@ -169,7 +168,6 @@ console.log(files);
                         $('.ajax-load').hide();
                         $("#results").append(data);
                         x++;
-                        serial++;
                         loadMoreData(x);
                     })
 

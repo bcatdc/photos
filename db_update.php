@@ -4,13 +4,8 @@ $admin = 1;
 $results = $_GET;
 
 function wpGETXMLRPC($title,$body,$file,$rpcurl,$username,$password,$categories,$time){
-
-$categories = array('Photos');
-
-$XML = 'hmmm';
-
-
-
+	$categories = array('Photos');
+	$XML = 'hmmm';
 	$datetime = gmdate('r', $time);
 	$theTimeDate = $datetime; //variable of date and time from script / database
 	$pubdate       = new DateTime($theTimeDate );
@@ -18,27 +13,23 @@ $XML = 'hmmm';
 	$pubdate       = str_replace("-", "", $pubdate); // remove the dashes
 	$removeTimeOffset = explode("+", $pubdate); // remove the time offset (split at the '+' in the date / time)
 	$pubdate       = $removeTimeOffset[0] . "Z"; // Append a Z to the string - we've now formatted the date and time.
-
-
-$title .= ' ' . $datetime;
-
-$cflds = array(array('key' => 'local_pic','value' => $file),'struct');
-$content = array('GET_type' => 'GET', 'categories' => $categories , 'date_created_gmt_BUSTED' => $pubdate, 'title' => $title, 'description' => $body, 'custom_fields' => $cflds);
-$params = array('',$username,$password,$content,$XML,1);
-$request = xmlrpc_encode_request('metaWeblog.newGET',$params);
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_GETFIELDS, $request);
-curl_setopt($ch, CURLOPT_URL, $rpcurl);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-curl_setopt($ch, CURLOPT_TIMEOUT, 1);
-curl_exec($ch);
-curl_close($ch);
+	$title .= ' ' . $datetime;
+	$cflds = array(array('key' => 'local_pic','value' => $file),'struct');
+	$content = array('GET_type' => 'GET', 'categories' => $categories , 'date_created_gmt_BUSTED' => $pubdate, 'title' => $title, 'description' => $body, 'custom_fields' => $cflds);
+	$params = array('',$username,$password,$content,$XML,1);
+	$request = xmlrpc_encode_request('metaWeblog.newGET',$params);
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_GETFIELDS, $request);
+	curl_setopt($ch, CURLOPT_URL, $rpcurl);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+	curl_exec($ch);
+	curl_close($ch);
 }
 
 
 // Make a MySQL Connection
 require "../../mysql_creds.php";
-
 
 // $ids = $_GET['ids'];
 $id = $_GET['id'];
@@ -62,9 +53,11 @@ if ($admin == 1){
 				$sql = "UPDATE media SET tag = REPLACE( tag ,'" . $tag . "', '') WHERE ID = ". $id;
 				echo '{"action":"tag dropped"}';
 			}
-			mysql_query($sql) or die(mysql_error());
+			mysqli_query($link , $sql) or die(mysql_error());
 //echo $sql;
-}else{ return 'Not Admin'; }
+}else{
+echo '{"action":"NOTHING"}';
+ }
 
 
 		//echo 'Updated<BR>';
